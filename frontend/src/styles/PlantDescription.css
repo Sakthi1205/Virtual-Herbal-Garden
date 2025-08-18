@@ -1,0 +1,304 @@
+/* Plant Description Styles */
+.plant-description {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: var(--primary);
+  background: transparent;
+  border-radius: 8px;
+  border: 2px dashed var(--primary);
+}
+
+.loading-spinner::before {
+  content: "🔄 ";
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error-message {
+  background: transparent;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  color: var(--danger);
+}
+
+.error-message h3 {
+  margin-top: 0;
+  color: var(--danger);
+}
+
+.error-message p {
+  margin: 10px 0;
+}
+
+/* No Data Message */
+.no-data {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.no-data h3 {
+  margin-top: 0;
+  color: var(--text);
+}
+
+/* Plant Header */
+.plant-header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border);
+}
+
+.plant-title {
+  color: var(--primary);
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.scientific-name {
+  font-style: italic;
+  color: var(--muted);
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+}
+
+.plant-description-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text);
+  background: var(--elevated);
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+}
+
+/* Section Styles */
+.plant-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: var(--card);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  border: 1px solid var(--border);
+}
+
+.section-title {
+  color: var(--primary);
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border);
+  font-weight: 600;
+}
+
+/* Grid Layouts */
+.taxonomy-grid,
+.morphology-grid,
+.medicinal-grid,
+.ayurvedic-grid,
+.growing-grid,
+.care-grid,
+.origin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.taxonomy-item,
+.morphology-item,
+.medicinal-item,
+.ayurvedic-item,
+.growing-item,
+.care-item,
+.origin-item {
+  background: transparent;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--primary);
+}
+
+.taxonomy-label,
+.morphology-label,
+.medicinal-property,
+.ayurvedic-label,
+.growing-label,
+.care-label,
+.origin-label {
+  font-weight: 600;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 5px;
+}
+
+.taxonomy-value,
+.morphology-value,
+.medicinal-description,
+.ayurvedic-value,
+.growing-value,
+.care-value,
+.origin-value {
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* Lists */
+.plant-list {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+}
+
+.list-item {
+  background: transparent;
+  margin: 8px 0;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--primary);
+  position: relative;
+}
+
+.list-item::before {
+  content: "🌿 ";
+  margin-right: 8px;
+}
+
+/* Geographic Distribution */
+.geographic-text {
+  background: var(--elevated);
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid var(--accent);
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+/* Safety Content */
+.safety-content {
+  background: var(--elevated);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.safety-item {
+  margin-bottom: 15px;
+}
+
+.safety-label {
+  font-weight: 600;
+  color: var(--text);
+  display: block;
+  margin-bottom: 5px;
+}
+
+.safety-value {
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.safety-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 10px 0;
+}
+
+.safety-list-item {
+  background: transparent;
+  margin: 5px 0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border-left: 3px solid var(--danger);
+  position: relative;
+}
+
+.safety-list-item::before {
+  content: "⚠️ ";
+  margin-right: 5px;
+}
+
+/* Plant Footer */
+.plant-footer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid var(--border);
+  text-align: center;
+}
+
+.last-updated {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .plant-description {
+    padding: 15px;
+  }
+  
+  .plant-title {
+    font-size: 2rem;
+  }
+  
+  .taxonomy-grid,
+  .morphology-grid,
+  .medicinal-grid,
+  .ayurvedic-grid,
+  .growing-grid,
+  .care-grid,
+  .origin-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .plant-section {
+    padding: 15px;
+  }
+}
+
+/* Hover Effects */
+.plant-section:hover {
+  box-shadow: 0 6px 14px var(--shadow-color);
+  transition: box-shadow 0.3s ease;
+}
+
+.taxonomy-item:hover,
+.morphology-item:hover,
+.medicinal-item:hover,
+.ayurvedic-item:hover,
+.growing-item:hover,
+.care-item:hover,
+.origin-item:hover {
+  background: var(--elevated);
+  transition: background-color 0.3s ease;
+}
+
+.list-item:hover {
+  background: var(--elevated);
+  transition: background-color 0.3s ease;
+}
+
+/* Dark theme overrides removed — theming now uses CSS variables defined in global.css */

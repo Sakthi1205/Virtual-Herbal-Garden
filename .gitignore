@@ -1,0 +1,41 @@
+# Node modules
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Build output
+dist/
+build/
+*.log
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# dotenv environment variables file
+.env
+.env.local
+.env.*.local
+
+# VS Code settings
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Coverage directory used by testing tools
+coverage/
+
+# Production files
+*.tgz
+
+# Misc
+*.swp
+*.swo
+
+# React specific
+public/static/
+public/build/

@@ -1,0 +1,87 @@
+/* LandingPage styles */
+.landing-root {
+  min-height: 100vh;
+  background: #fcfdf4;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+}
+.landing-nav {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1.5rem 2rem;
+}
+.landing-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+.landing-left {
+  flex: 1;
+  padding-left: 8vw;
+}
+.landing-title {
+  font-size: 4.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  color: #2c3e50;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  animation: fadeIn 1s ease-in-out;
+}
+.landing-subtitle {
+  font-size: 1.8rem;
+  margin-bottom: 2.5rem;
+  color: #34495e;
+  animation: fadeIn 1.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.landing-enter-btn {
+  background: #d6f36b;
+  color: #222;
+  font-size: 1.5rem;
+  padding: 0.75em 2.5em;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.landing-enter-btn:hover {
+  background: #c2e95a;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+.landing-enter-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.landing-enter-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(214, 243, 107, 0.4), 0 4px 12px rgba(0,0,0,0.1);
+}
+.landing-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.landing-illustration {
+  max-width: 420px;
+  width: 100%;
+  height: auto;
+}
