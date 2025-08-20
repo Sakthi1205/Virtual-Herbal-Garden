@@ -1,10 +1,10 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const AuthContext = createContext(null);
+import config from '../config';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -13,64 +13,109 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   // Check if user is logged in on initial load
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          // Verify token with backend
-          const response = await axios.get(`${API_URL}/users/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
+  const checkAuth = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Verify token with backend
+        const response = await axios.get(`${config.backendUrl}${config.api.auth.me}`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        });
+        
+        if (response.data) {
           setUser(response.data);
           setIsAuthenticated(true);
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        localStorage.removeItem('token');
-      } finally {
-        setLoading(false);
       }
-    };
-
-    checkAuth();
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      localStorage.removeItem('token');
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const login = async (credentials) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, credentials);
-      const { token, user } = response.data;
+      const response = await axios.post(`${config.backendUrl}${config.api.auth.login}`, credentials, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
-      localStorage.setItem('token', token);
-      setUser(user);
-      setIsAuthenticated(true);
-      return { success: true };
+      // Backend returns {_id, name, email, token}
+      const { token, _id, name, email } = response.data || {};
+      if (token) {
+        localStorage.setItem('token', token);
+        setUser({ _id, name, email });
+        setIsAuthenticated(true);
+        return { success: true };
+      }
+      return { success: false, message: 'No token received' };
     } catch (error) {
+      console.error('Login error:', error);
       return { 
         success: false, 
-        message: error.response?.data?.message || 'Login failed' 
+        message: error.response?.data?.message || 'Login failed. Please check your credentials.' 
       };
     }
   };
 
   const register = async (userData) => {
     try {
-      await axios.post(`${API_URL}/auth/register`, userData);
-      return { success: true };
+      const response = await axios.post(`${config.backendUrl}${config.api.auth.register}`, userData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      // Expect same shape as login
+      const { token, _id, name, email } = response.data || {};
+      if (token) {
+        localStorage.setItem('token', token);
+        setUser({ _id, name, email });
+        setIsAuthenticated(true);
+        return { success: true };
+      }
+      return { success: false, message: 'No token received' };
     } catch (error) {
+      console.error('Registration error:', error);
       return { 
         success: false, 
-        message: error.response?.data?.message || 'Registration failed' 
+        message: error.response?.data?.message || 'Registration failed. Please try again.' 
       };
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setIsAuthenticated(false);
-    navigate('/login');
+  const logout = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      if (token) {
+        await axios.post(`${config.apiUrl}/api/auth/logout`, {}, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          withCredentials: true
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
+      navigate('/login');
+    }
   };
 
   const updateUser = (userData) => {

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import GoogleLogin from './GoogleLogin';
+import config from '../config';
 
 import '../styles/SignupPage.css';
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    name: '', // Changed from username to name for backend compatibility
     email: '',
     password: '',
     confirmPassword: '',
@@ -16,7 +17,7 @@ const SignupPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  
+
   // Check if this is a callback from Google OAuth
   useEffect(() => {
     // Check for existing token
@@ -85,18 +86,18 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      const backendUrl = 'http://localhost:5000';
-      const response = await fetch(`${backendUrl}/api/users/register`, {
+      // Combine first and last name for 'name' field
+      const name = formData.name || `${formData.firstName} ${formData.lastName}`.trim();
+
+      const response = await fetch(`${config.backendUrl}${config.api.auth.register}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: formData.username,
+          name,
           email: formData.email,
-          password: formData.password,
-          firstName: formData.firstName,
-          lastName: formData.lastName
+          password: formData.password
         }),
       });
 
@@ -106,9 +107,17 @@ const SignupPage = () => {
         throw new Error(data.message || 'Registration failed');
       }
 
+      if (!data.token) {
+        throw new Error('No token received from server');
+      }
+
       // Store token and user data
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify({
+        _id: data._id,
+        name: data.name,
+        email: data.email
+      }));
 
       // Redirect to home page
       navigate('/home');
@@ -155,20 +164,6 @@ const SignupPage = () => {
                 className="input"
               />
             </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="username" className="label">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              placeholder="Choose a username"
-              className="input"
-            />
           </div>
 
           <div className="form-group">

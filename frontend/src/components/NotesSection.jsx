@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from '../config';
 import '../styles/NotesSection.css';
 
 const NotesSection = ({ plantName, userId = "default-user" }) => {
@@ -18,7 +19,7 @@ const NotesSection = ({ plantName, userId = "default-user" }) => {
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const API_BASE = 'http://localhost:5000/api/notes';
+  const API_BASE = '/api/notes';
 
   // Fetch notes on component mount and when plantName changes
   useEffect(() => {

@@ -7,10 +7,15 @@ import {
   deleteUserAccount,
   uploadProfilePicture,
 } from '../controllers/userController.js';
+import { registerUser, authUser } from '../controllers/authController.js'; // Import auth controllers
 import { protect } from '../middleware/authMiddleware.js';
 import upload from '../config/multerConfig.js';
 
 const router = express.Router();
+
+// Auth routes
+router.post('/signup', registerUser);
+router.post('/login', authUser);
 
 // Profile routes
 router

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import config from '../config';
 import axios from 'axios';
 
 import '../styles/Chatbot.css';
@@ -12,8 +13,7 @@ import '../styles/Chatbot.css';
 // - "go to <route>" or "open <route>" e.g. go to /notes, go to model tulasi
 // Requires auth to save notes; if not logged in, prompts to login.
 
-const RAW_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const API_BASE = RAW_BASE.endsWith('/api') ? RAW_BASE : `${RAW_BASE}/api`;
+const API_BASE = '';
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);

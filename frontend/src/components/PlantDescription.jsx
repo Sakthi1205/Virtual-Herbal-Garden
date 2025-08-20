@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/PlantDescription.css';
 import { useParams } from 'react-router-dom';
+import config from '../config';
+import '../styles/PlantDescription.css';
 
 const PlantDescription = ({ plantName: propPlantName }) => {
   const params = useParams();
@@ -23,9 +24,7 @@ const PlantDescription = ({ plantName: propPlantName }) => {
         setError(null);
         
         console.log('Fetching plant data for:', plantName);
-        const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const backendUrl = (rawBase || '').replace(/\/$/, '');
-        const response = await axios.get(`${backendUrl}/api/plants/${encodeURIComponent(plantName)}`);
+        const response = await axios.get(`/api/plants/${encodeURIComponent(plantName)}`);
         
         console.log('API Response:', response.data);
         

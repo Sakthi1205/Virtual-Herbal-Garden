@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Link } from 'react-router-dom';
+import config from './config';
 import { BookmarkProvider } from "./contexts/BookmarkContext";
 import ModelPage from "./components/ModelPage";
 import Navigation from "./components/Navigation";
@@ -18,6 +19,7 @@ import UserSettings from "./components/UserSettings";
 import './styles/global.css';
 import './styles/components.css';
 import Chatbot from './components/Chatbot';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 
 function App() {
   const [displayedText, setDisplayedText] = useState("");
@@ -81,8 +83,8 @@ function App() {
     return () => clearInterval(interval);
   }, [welcomeText]);
 
-  // Define backend URL as a constant to be used throughout the app
-  const backendUrl = 'http://localhost:5000';
+  // Use backend URL from config
+  const backendUrl = config.backendUrl;
 
   // Validate any stored JWT on startup; if expired, remove it to avoid blocking UI
   useEffect(() => {
@@ -180,6 +182,7 @@ function App() {
             <Route path="/notes" element={<NotesPage />} />
           <Route path="/settings" element={<UserSettings />} />
             <Route path="/model/:modelName" element={<ModelPage plantModels={plantModels} />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
             {/* Fallback: redirect any unknown path (e.g., /main) to /home */}
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>

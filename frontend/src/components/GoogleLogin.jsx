@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-
-// Derive API base from Vite env, default to localhost:5000
-const RAW_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const API_BASE = (RAW_BASE || '').replace(/\/$/, '');
+import config from '../config';
 
 import '../styles/GoogleLogin.css';
 
@@ -12,8 +9,8 @@ export default function GoogleLogin({ label = 'Continue with Google', width = 26
   const handleGoogleLogin = () => {
     try {
       setLoading(true);
-      // Full-page redirect to the backend OAuth start endpoint
-      window.location.href = `${API_BASE}/api/auth/google`;
+      // Redirect to backend's Google OAuth endpoint using proxy
+      window.location.href = `/api/auth/google`;
     } catch (_) {
       setLoading(false);
     }

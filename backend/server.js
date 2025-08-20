@@ -38,25 +38,36 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: false, // set true only when serving over HTTPS
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  },
-}));
+// Body parser
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// Sessions must be registered before passport.session()
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'your_default_secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // Set to true if using HTTPS
+  })
+);
+// Initialize passport (order: initialize -> session, after session middleware)
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Serve static uploads (e.g., images referenced as /uploads/filename.jpg)
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+// Routes
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/plants', plantRoutes);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaLeaf, FaQuestionCircle, FaSpinner, FaRedo } from 'react-icons/fa';
+import config from '../config';
 
 import '../styles/QuizSelection.css';
 
@@ -25,7 +26,7 @@ const QuizSelection = () => {
   const fetchAvailableQuizzes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/quizzes');
+      const response = await fetch(`${config.backendUrl}/api/quizzes`);
       if (!response.ok) {
         throw new Error('Failed to fetch quizzes');
       }

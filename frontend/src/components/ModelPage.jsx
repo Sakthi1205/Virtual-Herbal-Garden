@@ -3,6 +3,7 @@ import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useProgress } from "@react-three/drei";
+import config from '../config';
 import { useBookmarks } from '../contexts/BookmarkContext';
 import { FaQuestionCircle, FaStar } from 'react-icons/fa';
 import ModelViewer from "./ModelViewer";
@@ -37,8 +38,8 @@ function ModelPage({ plantModels }) {
     border: '#e2e8f0'           // light border
   };
 
-  // API base (fallback to localhost:5000 if env not set)
-  const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+  // API base from config
+  const API_BASE = config.backendUrl;
 
   useLayoutEffect(() => {
     if (notesRef.current) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from './Navigation';
 import axios from 'axios';
+import config from '../config';
 import '../styles/NotesPage.css';
 
 const NotesPage = () => {
@@ -17,7 +18,7 @@ const NotesPage = () => {
   const [sortBy, setSortBy] = useState('newest');
 
   const userId = "default-user"; // Replace with actual user ID from auth
-  const API_BASE = 'http://localhost:5000/api/notes';
+  const API_BASE = `${config.backendUrl}/api/notes`;
 
   // Fetch all user notes
   const fetchNotes = async () => {

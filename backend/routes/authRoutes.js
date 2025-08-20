@@ -1,7 +1,14 @@
 import express from 'express';
 import passport from 'passport';
+import { registerUser, authUser } from '../controllers/authController.js';
+
 const router = express.Router();
 
+// Local Authentication
+router.post('/register', registerUser);
+router.post('/login', authUser);
+
+// Google OAuth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get('/google/callback',

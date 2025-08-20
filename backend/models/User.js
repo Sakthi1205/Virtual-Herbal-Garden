@@ -13,8 +13,7 @@ const userSchema = new mongoose.Schema({
   },
   username: {
     type: String,
-    // Only required for non-OAuth users
-    required: function() { return !this.googleId; },
+    // Optional username; keep unique if provided
     unique: true,
     sparse: true,
     trim: true,

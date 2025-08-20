@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import GoogleLogin from './GoogleLogin';
+import config from '../config';
 
 import '../styles/LoginPage.css';
 
@@ -60,9 +61,7 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      // Use localhost URL for backend API
-      const backendUrl = 'http://localhost:5000';
-      const response = await fetch(`${backendUrl}/api/users/login`, {
+      const response = await fetch(`${config.backendUrl}${config.api.auth.login}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,9 +75,17 @@ const LoginPage = () => {
         throw new Error(data.message || 'Login failed');
       }
 
+      if (!data.token) {
+        throw new Error('No token received from server');
+      }
+
       // Store token and user data
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify({
+        _id: data._id,
+        name: data.name,
+        email: data.email
+      }));
 
       // Redirect to home page
       navigate('/home');

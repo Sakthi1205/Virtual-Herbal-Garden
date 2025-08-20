@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FaCheckCircle, FaTimesCircle, FaRedo, FaArrowLeft, FaLeaf, FaSpinner, FaWhatsapp, FaEnvelope } from 'react-icons/fa';
+import config from '../config';
 
 import '../styles/QuizPage.css';
 
@@ -18,7 +19,7 @@ const QuizPage = () => {
 
   useEffect(() => {
     if (plantName) {
-      fetch(`http://localhost:5000/api/quizzes/${plantName}`)
+      fetch(`${config.backendUrl}/api/quizzes/${plantName}`)
         .then(res => {
           if (!res.ok) {
             throw new Error('Quiz not found');

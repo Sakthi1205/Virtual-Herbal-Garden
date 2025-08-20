@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaQuestionCircle } from 'react-icons/fa';
+import config from '../config';
 import Navigation from './Navigation';
 import axios from 'axios';
 
@@ -19,8 +20,7 @@ const BrowsePage = ({ plantModels }) => {
     const fetchPlants = async () => {
       try {
         setLoading(true);
-        const backendUrl = 'http://localhost:5000';
-        const response = await axios.get(`${backendUrl}/api/plants`);
+        const response = await axios.get('/api/plants');
         if (response.data) {
           setPlants(response.data);
         }
@@ -45,8 +45,7 @@ const BrowsePage = ({ plantModels }) => {
     
     try {
       // First try to search from backend
-      const backendUrl = 'http://localhost:5000';
-      const response = await axios.get(`${backendUrl}/api/plants/search?name=${searchTerm}`);
+      const response = await axios.get(`/api/plants/search?name=${searchTerm}`);
       if (response.data && response.data.length > 0) {
         setSearchResults(response.data);
         setShowSearchResults(true);
