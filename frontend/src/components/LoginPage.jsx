@@ -60,38 +60,53 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
 
+    const loginUser = async (url) => {
+      try {
+        const response = await fetch(`${url}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Login failed');
+        }
+
+        return await response.json();
+      } catch (err) {
+        throw err;
+      }
+    };
+
     try {
-      const response = await fetch(`${config.backendUrl}${config.api.auth.login}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+      // Try primary URL first
+      let data;
+      try {
+        data = await loginUser(config.backendUrl);
+      } catch (primaryError) {
+        console.error('Primary login failed, trying fallback:', primaryError);
+        // If primary fails and not already trying localhost, try localhost
+        if (!config.backendUrl.includes('localhost')) {
+          try {
+            data = await loginUser('http://localhost:5000');
+          } catch (fallbackError) {
+            console.error('Fallback login also failed:', fallbackError);
+            throw new Error(primaryError.message || 'Login failed. Please try again later.');
+          }
+        } else {
+          throw primaryError;
+        }
       }
 
-      if (!data.token) {
-        throw new Error('No token received from server');
-      }
-
-      // Store token and user data
+      // Save token and user data to localStorage
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify({
-        _id: data._id,
-        name: data.name,
-        email: data.email
-      }));
-
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
       // Redirect to home page
       navigate('/home');
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(error.message || 'Login failed. Please check your credentials.');
+    } catch (err) {
+      setError(err.message || 'Failed to log in. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }

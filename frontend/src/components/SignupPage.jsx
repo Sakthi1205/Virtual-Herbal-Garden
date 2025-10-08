@@ -60,6 +60,25 @@ const SignupPage = () => {
     }
   }, [navigate]);
 
+  const registerUser = async (url, userData) => {
+    try {
+      const response = await fetch(`${url}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      return await response.json();
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -82,48 +101,45 @@ const SignupPage = () => {
       setError('Password must be at least 6 characters long');
       return;
     }
-
+    
     setLoading(true);
 
+    const userData = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      firstName: formData.firstName,
+      lastName: formData.lastName
+    };
+
     try {
-      // Combine first and last name for 'name' field
-      const name = formData.name || `${formData.firstName} ${formData.lastName}`.trim();
-
-      const response = await fetch(`${config.backendUrl}${config.api.auth.register}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email: formData.email,
-          password: formData.password
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+      // Try primary URL first
+      let data;
+      try {
+        data = await registerUser(config.backendUrl, userData);
+      } catch (primaryError) {
+        console.error('Primary registration failed, trying fallback:', primaryError);
+        // If primary fails and not already trying localhost, try localhost
+        if (!config.backendUrl.includes('localhost')) {
+          try {
+            data = await registerUser('http://localhost:5000', userData);
+          } catch (fallbackError) {
+            console.error('Fallback registration also failed:', fallbackError);
+            throw new Error(primaryError.message || 'Registration failed. Please try again later.');
+          }
+        } else {
+          throw primaryError;
+        }
       }
 
-      if (!data.token) {
-        throw new Error('No token received from server');
-      }
-
-      // Store token and user data
+      // Save token and user data to localStorage
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify({
-        _id: data._id,
-        name: data.name,
-        email: data.email
-      }));
-
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
       // Redirect to home page
       navigate('/home');
-    } catch (error) {
-      console.error('Registration error:', error);
-      setError(error.message || 'Registration failed. Please try again.');
+    } catch (err) {
+      setError(err.message || 'Failed to create an account. Please try again.');
     } finally {
       setLoading(false);
     }

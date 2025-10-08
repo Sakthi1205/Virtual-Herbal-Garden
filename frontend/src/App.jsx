@@ -9,13 +9,13 @@ import LandingPage from "./components/LandingPage";
 import LoginPage from "./components/LoginPage";
 import SignupPage from "./components/SignupPage";
 import BrowsePage from "./components/BrowsePage";
-
+import AdminDashboard from "./pages/AdminDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 import BookmarksPage from "./components/BookmarksPage";
 import QuizPage from "./components/QuizPage";
 import QuizSelection from "./components/QuizSelection";
 import NotesPage from "./components/NotesPage";
 import UserSettings from "./components/UserSettings";
-// Images now sourced from GitHub raw URLs per request
 import './styles/global.css';
 import './styles/components.css';
 import Chatbot from './components/Chatbot';
@@ -124,7 +124,7 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/home" element={
               <div className="home-container">
-                <Navigation />
+                <Navigation user={JSON.parse(localStorage.getItem('user'))} />
                 <div className="home-content">
                     <h1 className="home-title" style={{ color: '#28a745', textShadow: 'none', animation: 'none' }}>{displayedText}</h1>
                     <div style={{ margin: '20px 0' }}>
@@ -183,6 +183,15 @@ function App() {
           <Route path="/settings" element={<UserSettings />} />
             <Route path="/model/:modelName" element={<ModelPage plantModels={plantModels} />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            
+            {/* Admin Dashboard - Accessible to all */}
+            <Route path="/admin/dashboard" element={
+              <>
+                <Navigation user={JSON.parse(localStorage.getItem('user'))} />
+                <AdminDashboard />
+              </>
+            } />
+            
             {/* Fallback: redirect any unknown path (e.g., /main) to /home */}
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>

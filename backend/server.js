@@ -15,6 +15,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import adminRoutes from"./routes/adminRoutes.js";
 
 dotenv.config({ path: './config.env' });
 connectDB();
@@ -75,6 +76,7 @@ app.use('/api/notes', noteRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/models', modelRoutes);
 app.use('/api/images', imageRoutes);
+app.use('/api/admin',adminRoutes);
 
 app.get('/', (req, res) => {
   res.send('Herbal Garden API is running');

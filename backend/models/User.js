@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
   settings: {
     theme: {
       type: String,
@@ -52,6 +57,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'default-profile.png',
   },
+  
 });
 
 // Pre-save hook to hash password

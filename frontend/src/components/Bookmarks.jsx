@@ -31,22 +31,43 @@ const FavoritesPage = () => {
     }
   ];
 
-  // Fetch user's favorites from backend (to be implemented)
+  // Fetch user's favorites from backend with fallback
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
         setLoading(true);
-        // Uncomment when backend API is ready
-        // const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        // const response = await axios.get(`${backendUrl}/api/users/favorites`, {
-        //   headers: {
-        //     Authorization: `Bearer ${localStorage.getItem('token')}`
-        //   }
-        // });
-        // setFavorites(response.data);
+        const backendUrl = config.backendUrl;
         
-        // Using placeholder data for now
-        setFavorites(placeholderFavorites);
+        try {
+          const response = await axios.get(`${backendUrl}/api/users/favorites`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            },
+            timeout: 5000 // 5 second timeout
+          });
+          setFavorites(response.data);
+        } catch (primaryError) {
+          console.error('Primary API failed, trying fallback:', primaryError);
+          // If primary fails, try localhost as fallback if not already trying localhost
+          if (!backendUrl.includes('localhost')) {
+            try {
+              const fallbackResponse = await axios.get(`http://localhost:5000/api/users/favorites`, {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('token')}`
+                },
+                timeout: 5000
+              });
+              setFavorites(fallbackResponse.data);
+            } catch (fallbackError) {
+              console.error('Fallback API also failed:', fallbackError);
+              // If both fail, use placeholder data
+              setFavorites(placeholderFavorites);
+            }
+          } else {
+            // If we were already trying localhost and it failed, use placeholder
+            setFavorites(placeholderFavorites);
+          }
+        }
         setLoading(false);
       } catch (err) {
         console.error('Error fetching favorites:', err);

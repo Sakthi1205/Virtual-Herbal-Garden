@@ -70,12 +70,8 @@ const plantSchema = new mongoose.Schema({
     contraindications: [String]
   },
   model3D: {
-    type: Buffer, // Store .glb file as binary data (legacy approach)
-    required: false
-  },
-  model3DFileId: {
-    type: mongoose.Schema.Types.ObjectId, // Reference to GridFS file
-    required: false
+    type: String, // Store .glb file as binary data (legacy approach)
+    required: true
   },
   lastUpdated: {
     type: Date,
