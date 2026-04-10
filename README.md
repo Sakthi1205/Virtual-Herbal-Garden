@@ -63,7 +63,7 @@ This project provides a digital solution for medicinal plant education by:
 
 ## 📄 Project Report
 
-📥 [Download Report](./Virtual_Herbal_Garden_Report.pdf)
+📥 [Report](./Viva Report.pdf)
 
 ---
 
