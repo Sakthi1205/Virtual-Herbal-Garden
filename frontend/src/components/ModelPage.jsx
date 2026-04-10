@@ -1,4 +1,4 @@
- // cleaned duplicate header block
+// cleaned duplicate header block
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
@@ -11,12 +11,14 @@ import Navigation from "./Navigation";
 import PlantDescription from "./PlantDescription";
 import NotesSection from "./NotesSection";
 
- import '../styles/ModelPage.css';
+import '../styles/ModelPage.css';
 
 function ModelPage({ plantModels }) {
   const { modelName } = useParams();
   const navigate = useNavigate();
-  const modelData = plantModels[modelName];
+  const decodedModelName = decodeURIComponent(modelName || "");
+  const staticModelData = plantModels[modelName];
+  const [dynamicModelData, setDynamicModelData] = useState(null);
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
 
   const notesRef = useRef(null);
@@ -40,6 +42,43 @@ function ModelPage({ plantModels }) {
 
   // API base from config
   const API_BASE = config.backendUrl;
+  const resolveAssetUrl = (raw) => {
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw) || raw.startsWith("data:")) return raw;
+    if (raw.startsWith("/")) return `${API_BASE}${raw}`;
+    return `${API_BASE}/${raw}`;
+  };
+
+  useEffect(() => {
+    if (staticModelData) {
+      setDynamicModelData(null);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchDynamicPlant = async () => {
+      try {
+        const response = await fetch(`/api/plants/${encodeURIComponent(decodedModelName)}`);
+        const json = await response.json().catch(() => ({}));
+        const data = json?.data || json;
+        if (!cancelled && data && (data.plantName || data.name)) {
+          setDynamicModelData({
+            name: data.plantName || data.name,
+            image: resolveAssetUrl(data.image || data.images?.[0] || "/placeholder.jpg"),
+            description: data.description || "",
+            model3D: resolveAssetUrl(data.model3D || ""),
+          });
+        }
+      } catch {
+        if (!cancelled) setDynamicModelData(null);
+      }
+    };
+
+    fetchDynamicPlant();
+    return () => {
+      cancelled = true;
+    };
+  }, [decodedModelName, staticModelData]);
 
   useLayoutEffect(() => {
     if (notesRef.current) {
@@ -58,45 +97,23 @@ function ModelPage({ plantModels }) {
 
   // Cleanup on unmount or when model changes
   useEffect(() => {
-    return () => { 
+    return () => {
       if (toastTimerRefLocal.current) clearTimeout(toastTimerRefLocal.current);
     };
   }, [modelName]);
 
-  if (!modelData) {
-    return (
-      <div
-        style={{
-          color: 'var(--danger)',
-          padding: '20px',
-          textAlign: 'center',
-          backgroundColor: palette.cardBg,
-          border: `1px solid ${palette.border}`,
-          borderRadius: '12px'
-        }}
-      >
-        <h2>❌ Model Not Found</h2>
-        <button
-          onClick={() => navigate("/home")}
-          style={{
-            marginTop: "20px",
-            padding: "10px 20px",
-            backgroundColor: "var(--primary)",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
-        >
-          Return to Home
-        </button>
-      </div>
-    );
-  }
+  const fallbackModelData = {
+    name: decodedModelName || "Plant",
+    image: "/placeholder.jpg",
+    description: "",
+  };
+  const modelData = staticModelData || dynamicModelData || fallbackModelData;
+  const resolvedModelPath = modelData.model3D ? resolveAssetUrl(modelData.model3D) : "";
+  const canRender3D = !!staticModelData || !!resolvedModelPath;
 
   const ModelComponent = ModelViewer;
 
-  const getPlantNameForBackend = (modelName) => {
+  const getPlantNameForBackend = (currentModelName) => {
     const plantNameMap = {
       neem: "Neem",
       tulasi: "Tulasi",
@@ -104,7 +121,7 @@ function ModelPage({ plantModels }) {
       ashwagandha: "Ashwagandha",
       marjoram: "Marjoram",
     };
-    return plantNameMap[modelName] || modelName;
+    return plantNameMap[currentModelName] || modelData.name || decodedModelName;
   };
 
   // Fetch images for this plant (gallery)
@@ -176,8 +193,8 @@ function ModelPage({ plantModels }) {
   };
 
   return (
-    <div style={{ 
-      backgroundColor: palette.pageBg, 
+    <div style={{
+      backgroundColor: palette.pageBg,
       minHeight: "100vh",
       display: 'flex',
       flexDirection: 'column',
@@ -234,19 +251,27 @@ function ModelPage({ plantModels }) {
               border: `1px solid ${palette.border}`,
               flex: 1
             }}>
-              <ModelLoadingOverlay />
-              <Canvas
-                camera={{ position: [2, 2, 2], fov: 50 }}
-                style={{ width: "100%", height: "100%" }}
-              >
-                <ambientLight intensity={2.5 } />
-                <directionalLight position={[2, 2, 2]} intensity={1.5} />
-                <pointLight position={[5, 5, 5]} intensity={1.5} />
-                <pointLight position={[-5, -5, -5]} intensity={1.5} />
-                <pointLight position={[0, 5, -5]} intensity={1.5} />
-                <OrbitControls enableZoom enableRotate />
-                <ModelComponent modelName={modelName} scale={1.2} />
-              </Canvas>
+              {canRender3D ? (
+                <>
+                  <ModelLoadingOverlay />
+                  <Canvas
+                    camera={{ position: [2, 2, 2], fov: 50 }}
+                    style={{ width: "100%", height: "100%" }}
+                  >
+                    <ambientLight intensity={2.5} />
+                    <directionalLight position={[2, 2, 2]} intensity={1.5} />
+                    <pointLight position={[5, 5, 5]} intensity={1.5} />
+                    <pointLight position={[-5, -5, -5]} intensity={1.5} />
+                    <pointLight position={[0, 5, -5]} intensity={1.5} />
+                    <OrbitControls enableZoom enableRotate />
+                    <ModelComponent modelName={modelName} modelPath={resolvedModelPath} scale={1.2} />
+                  </Canvas>
+                </>
+              ) : (
+                <div style={{ padding: "16px", color: palette.subText }}>
+                  3D model preview is not available for this plant yet.
+                </div>
+              )}
             </div>
             {/* Images Gallery */}
             <div style={{ marginTop: '16px' }}>
@@ -270,19 +295,19 @@ function ModelPage({ plantModels }) {
                     const src = img.src || img.url;
                     return (
                       <div key={img._id || src} style={{
-                      backgroundColor: palette.elevatedBg,
-                      border: `1px solid ${palette.border}`,
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      boxShadow: '0 2px 8px var(--shadow-color)'
-                    }}>
-                      <img
-                        src={src}
-                        alt={img.title || `${modelData.name} image`}
-                        style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
-                        loading="lazy"
-                      />
-                    </div>
+                        backgroundColor: palette.elevatedBg,
+                        border: `1px solid ${palette.border}`,
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        boxShadow: '0 2px 8px var(--shadow-color)'
+                      }}>
+                        <img
+                          src={src}
+                          alt={img.title || `${modelData.name} image`}
+                          style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
+                          loading="lazy"
+                        />
+                      </div>
                     );
                   })}
                 </div>
@@ -314,7 +339,7 @@ function ModelPage({ plantModels }) {
                   fontSize: '20px',
                   fontWeight: '600'
                 }}>
-                  Your Notes for {modelData.name}
+                  Notes Section
                 </h2>
                 <button
                   style={{
@@ -338,7 +363,7 @@ function ModelPage({ plantModels }) {
                 </button>
               </div>
               <div style={{ flex: 1, minHeight: '300px', color: 'var(--text)' }}>
-                <NotesSection plantName={modelName} userId="default-user" />
+                <NotesSection plantName={getPlantNameForBackend(modelName)} userId="default-user" />
               </div>
             </div>
           </div>
@@ -405,8 +430,8 @@ function ModelPage({ plantModels }) {
                 flexShrink: 0,
                 border: `1px solid ${palette.border}`
               }}>
-                <img 
-                  src={modelData.image} 
+                <img
+                  src={modelData.image}
                   alt={modelData.name}
                   style={{
                     width: '100%',
@@ -446,7 +471,7 @@ function ModelPage({ plantModels }) {
                   fontSize: '15px',
                   fontWeight: '500'
                 }}>
-                  Ocimum tenuiflorum L. (synonym: Ocimum sanctum L.)
+                  {modelData.scientificName}
                 </p>
                 <div style={{
                   display: 'flex',
@@ -454,16 +479,7 @@ function ModelPage({ plantModels }) {
                   marginTop: '12px',
                   flexWrap: 'wrap'
                 }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    color: palette.subText,
-                    fontSize: '14px'
-                  }}>
-                    <span>🌡️</span>
-                    <span>Ideal Temp: 20-30°C</span>
-                  </div>
+
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',

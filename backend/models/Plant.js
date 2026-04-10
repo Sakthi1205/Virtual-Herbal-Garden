@@ -6,14 +6,19 @@ const plantSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+
   normalizedPlantName: {
     type: String,
     required: true,
     unique: true,
     index: true
   },
+
+  // 🌿 BASIC INFO
   scientificName: String,
   description: String,
+
+  // 🌿 TAXONOMY
   taxonomy: {
     kingdom: String,
     phylum: String,
@@ -23,6 +28,8 @@ const plantSchema = new mongoose.Schema({
     genus: String,
     species: String
   },
+
+  // 🌿 MORPHOLOGY
   morphology: {
     height: String,
     leaves: String,
@@ -30,12 +37,20 @@ const plantSchema = new mongoose.Schema({
     fruits: String,
     roots: String
   },
+
+  // 🌿 DISTRIBUTION
   geographicDistribution: String,
+
+  // 🌿 CHEMISTRY
   phytochemistry: [String],
+
+  // 🌿 MEDICINAL
   medicinalProperties: [{
     property: String,
     description: String
   }],
+
+  // 🌿 AYURVEDA
   ayurvedicProfile: {
     rasa: [String],
     guna: [String],
@@ -44,49 +59,94 @@ const plantSchema = new mongoose.Schema({
     doshaAction: String,
     ayurvedicActions: [String]
   },
+
+  // 🌿 TRADITIONAL + RESEARCH
   traditionalUses: [String],
   pharmacologicalStudies: [String],
   genomicResearch: [String],
   culturalSignificance: [String],
+
+  // 🌿 REFERENCES
   references: [String],
+
+  // 🌿 SAFETY
   precautions: [String],
+
+  // 🌿 GROWTH
   growingConditions: {
     climate: String,
     soilType: String,
     sunlight: String,
     waterNeeds: String
   },
+
   careInstructions: {
     watering: String,
     fertilizing: String,
     pruning: String,
     pestControl: String
   },
+
+  // 🌿 GENERAL INFO
   origin: String,
   harvestTime: String,
+
   safetyNotes: {
     toxicity: String,
     warnings: [String],
     contraindications: [String]
   },
+
+  // 🌿 3D MODEL
   model3D: {
-    type: String, // Store .glb file as binary data (legacy approach)
+    type: String, // .glb file path / URL
     required: true
   },
+
+  // 🔥 NEW ADDITIONS (IMPORTANT)
+
+  // 👉 FULL Wikipedia RAW (no data loss)
+  rawContent: {
+    type: String
+  },
+
+  // 👉 AI structured backup (flexible future-proof)
+  aiStructured: {
+    type: mongoose.Schema.Types.Mixed
+  },
+
+  // 👉 Source tracking (optional but useful)
+  dataSource: {
+    type: String,
+    enum: ['manual', 'wiki-ai'],
+    default: 'manual'
+  },
+
+  // 👉 Image support (from Wikipedia)
+  images: [String],
+
   lastUpdated: {
     type: Date,
     default: Date.now
   }
+
+}, {
+  timestamps: true
 });
 
 
-// Pre-save hook to set normalizedPlantName for uniqueness (case-insensitive, no spaces)
+// 🔥 INDEXES (Performance boost)
+plantSchema.index({ plantName: 'text', scientificName: 'text' });
+
+
+// 🔥 PRE-SAVE HOOK (UNCHANGED LOGIC)
 plantSchema.pre('validate', function(next) {
   if (this.plantName) {
     this.normalizedPlantName = this.plantName.replace(/\s+/g, '').toLowerCase();
   }
   next();
 });
+
 
 const Plant = mongoose.model('Plant', plantSchema);
 export default Plant;

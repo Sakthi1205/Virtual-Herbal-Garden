@@ -27,6 +27,12 @@
   gap: 0.5rem;
 }
 
+.logo-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
 .nav-links {
   display: flex;
   justify-content: center;
@@ -93,3 +99,45 @@
 
 .settings-link:hover { background-color: var(--elevated); }
 /* Styles for Navigation component. Move inline styles here progressively. */
+
+.logo-menu-wrapper {
+  position: relative;
+}
+
+.sidebar-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 230px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  padding: 10px;
+  z-index: 2000;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.sidebar-links {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  color: var(--primary);
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-link:hover {
+  background: var(--elevated);
+  border-color: var(--border);
+}

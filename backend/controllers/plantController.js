@@ -110,4 +110,4 @@ export const searchPlants = async (req, res) => {
       message: err.message 
     });
   }
-};
+};  

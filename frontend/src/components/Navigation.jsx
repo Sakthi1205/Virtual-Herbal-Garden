@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUserCircle, FaSignOutAlt, FaLeaf, FaHome, FaBook, FaQuestionCircle, FaBookmark, FaStickyNote, FaUserShield } from 'react-icons/fa';
+import Sidebar from './Sidebar';
 
 import '../styles/Navigation.css';
 
@@ -20,6 +21,7 @@ const Navigation = ({ user: propUser, onLogout }) => {
 
   // Check if user is logged in
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Update login state when component mounts or user changes
   useEffect(() => {
@@ -54,10 +56,21 @@ const Navigation = ({ user: propUser, onLogout }) => {
   return (
     <nav className="navbar">
       {/* Temporary debug button - remove in production */}
-     
-      <Link to="/home" className="logo-link">
-        <FaLeaf />
-      </Link>
+
+      <div
+        className="logo-menu-wrapper"
+        onMouseLeave={() => setIsSidebarOpen(false)}
+      >
+        <button
+          type="button"
+          className="logo-link logo-button"
+          onClick={() => setIsSidebarOpen((prev) => !prev)}
+          aria-label="Open quick menu"
+        >
+          <FaLeaf />
+        </button>
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      </div>
       <div className="nav-links">
         <Link to="/home" className="nav-link"><FaHome /> Home</Link>
         <Link to="/browse" className="nav-link"><FaBook /> Browse</Link>

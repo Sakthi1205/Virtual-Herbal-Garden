@@ -1,97 +1,160 @@
 import express from "express";
 import Plant from "../models/Plant.js";
 
-const router=express.Router();
+const router = express.Router();
 
-// to create a new plant data and add it to the database
-router.post("/plants",async (req,res)=>{
-    try{
-        const plantData = new Plant(req.body); //creating new plant data
-        await plantData.save();
-        res.status(200).json({message: "Successfully created", plant: plantData});
+/* =====================================
+   🌿 CREATE NEW PLANT
+===================================== */
+router.post("/plants", async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data.plantName) {
+      return res.status(400).json({
+        success: false,
+        message: "Plant name is required",
+      });
     }
 
-    catch(err){
-        res.status(400).json({error:err.message});
-    }
+    data.normalizedPlantName = data.plantName
+      .toLowerCase()
+      .replace(/\s+/g, "");
+
+    data.lastUpdated = new Date();
+
+    const plant = await Plant.create(data);
+
+    res.status(201).json({
+      success: true,
+      plant,
+    });
+  } catch (err) {
+    res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
+/* =====================================
+   🌿 GET ALL PLANTS (WITH SEARCH)
+===================================== */
+router.get("/plants", async (req, res) => {
+  try {
+    const { search } = req.query;
 
-//to get all the plants from the database
+    let filter = {};
 
-router.get("/plants",async(req,res)=>{
-    try{
-        const plantData=await Plant.find();
-        res.json(plantData);
+    if (search) {
+      filter = {
+        $or: [
+          { plantName: { $regex: search, $options: "i" } },
+          { scientificName: { $regex: search, $options: "i" } },
+        ],
+      };
     }
 
-    catch(err){
-        res.status(400).json({error:err.message});
-    }
+    const plants = await Plant.find(filter).sort({ lastUpdated: -1 });
+
+    // 🔥 IMPORTANT: return plain array for frontend
+    res.status(200).json(plants);
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
-//to get specific plant from the database
+/* =====================================
+   🌿 GET SINGLE PLANT
+===================================== */
+router.get("/plants/:id", async (req, res) => {
+  try {
+    const plant = await Plant.findById(req.params.id);
 
-router.get("/plants/:id",async(req,res)=>{
-    try{
-        const plantData = await Plant.findById(req.params.id);
-        if(!plantData){
-            return res.status(400).json({message:"No plant is found"});
-        }
-
-        else{
-            res.status(200).json({message:"plant is found"});
-            return res.json(plantData);
-        }
+    if (!plant) {
+      return res.status(404).json({
+        success: false,
+        message: "Plant not found",
+      });
     }
 
-    catch(err){
-        res.status(400).json({error:err.message});
-    }
+    res.status(200).json(plant);
+
+  } catch (err) {
+    res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
+/* =====================================
+   🌿 UPDATE PLANT
+===================================== */
+router.put("/plants/:id", async (req, res) => {
+  try {
+    const data = req.body;
 
-// to update the exsisting plant details
-
-router.put("/plants/:id",async (req,res)=>{
-    try{
-        const updatedPlant=await Plant.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            {new:true});
-            if(!updatedPlant){
-                return res.status(400).json({message:"The plant is not updated or not found"});
-        
-            }
-            else{
-                res.status(200).json({message:"Updated Successfully"});
-                return res.json(updatedPlant);
-            }
-
+    if (data.plantName) {
+      data.normalizedPlantName = data.plantName
+        .toLowerCase()
+        .replace(/\s+/g, "");
     }
 
-    catch(err){
-        return res.status(400).json({error:err.message});
-    }
-   
+    data.lastUpdated = new Date();
 
+    const updatedPlant = await Plant.findByIdAndUpdate(
+      req.params.id,
+      { $set: data },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedPlant) {
+      return res.status(404).json({
+        success: false,
+        message: "Plant not found",
+      });
+    }
+
+    res.status(200).json(updatedPlant);
+
+  } catch (err) {
+    res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
+/* =====================================
+   🌿 DELETE PLANT
+===================================== */
+router.delete("/plants/:id", async (req, res) => {
+  try {
+    const deletedPlant = await Plant.findByIdAndDelete(req.params.id);
 
-//To Deletethe plant from the database
+    if (!deletedPlant) {
+      return res.status(404).json({
+        success: false,
+        message: "Plant not found",
+      });
+    }
 
-router.delete("/plants/:id",async (req,res)=>{
-    try{
-        const deletedPlant = await Plant.findByIdAndDelete(req.params.id);
-        if(!deletedPlant){
-            return res.status(404).json({message:"Plant not found"});
-        }
-        res.status(200).json({message:"Plant deleted Successfully"});
-    }
-    catch(err){
-        return res.status(404).json({error:err.message});
-    }
+    res.status(200).json({
+      success: true,
+      message: "Plant deleted successfully",
+    });
+
+  } catch (err) {
+    res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });
-
 
 export default router;

@@ -20,6 +20,8 @@ import './styles/global.css';
 import './styles/components.css';
 import Chatbot from './components/Chatbot';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import QuizManagement from "./pages/QuizManagement";
+import ExplorePlantsPage from "./pages/ExplorePlantsPage";
 
 function App() {
   const [displayedText, setDisplayedText] = useState("");
@@ -176,6 +178,7 @@ function App() {
               </div>
             } />
             <Route path="/browse" element={<BrowsePage plantModels={plantModels} />} />
+            <Route path="/explore-plants" element={<ExplorePlantsPage />} />
             <Route path="/bookmarks" element={<BookmarksPage plantModels={plantModels} />} />
             <Route path="/quiz" element={<QuizSelection />} />
             <Route path="/quiz/:plantName" element={<QuizPage />} />
@@ -189,6 +192,13 @@ function App() {
               <>
                 <Navigation user={JSON.parse(localStorage.getItem('user'))} />
                 <AdminDashboard />
+              </>
+            } />
+
+            <Route path="/admin/quizzes" element={
+              <>
+                <Navigation user={JSON.parse(localStorage.getItem('user'))} />
+                <QuizManagement />
               </>
             } />
             

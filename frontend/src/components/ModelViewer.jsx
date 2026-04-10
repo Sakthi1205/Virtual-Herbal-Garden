@@ -1,9 +1,11 @@
 import React, { useMemo, Suspense } from "react";
 import { useGLTF } from "@react-three/drei";
 
-const ModelViewer = ({ modelName, ...props }) => {
+const ModelViewer = ({ modelName, modelPath: modelPathOverride, ...props }) => {
   // Map model names to their corresponding GLB files
   const modelPath = useMemo(() => {
+    if (modelPathOverride) return modelPathOverride;
+
     const modelMap = {
       'tulasi': 'https://raw.githubusercontent.com/mimictroll30/3d-models/main/tulasi.glb',
       'neem': 'https://raw.githubusercontent.com/mimictroll30/3d-models/main/neemmodel.glb',
@@ -14,7 +16,7 @@ const ModelViewer = ({ modelName, ...props }) => {
     };
     
     return modelMap[modelName?.toLowerCase()] || modelMap['default'];
-  }, [modelName]);
+  }, [modelName, modelPathOverride]);
 
   // Inner component to handle model loading
   const Model = () => {

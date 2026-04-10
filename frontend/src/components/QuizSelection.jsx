@@ -31,7 +31,25 @@ const QuizSelection = () => {
         throw new Error('Failed to fetch quizzes');
       }
       const quizzes = await response.json();
-      setAvailableQuizzes(quizzes);
+      
+      const quizzesWithImages = await Promise.all(
+        quizzes.map(async (quiz) => {
+          try {
+            const imgRes = await fetch(`${config.backendUrl}/api/images/${quiz.plantName}`);
+            if (imgRes.ok) {
+              const imgData = await imgRes.json();
+              if (imgData.data && imgData.data.length > 0) {
+                return { ...quiz, dbImage: imgData.data[0].src };
+              }
+            }
+          } catch (e) {
+            console.error(`Failed to fetch db image for ${quiz.plantName}`, e);
+          }
+          return quiz;
+        })
+      );
+
+      setAvailableQuizzes(quizzesWithImages);
     } catch (err) {
       setError(err.message);
       console.error('Error fetching quizzes:', err);
@@ -97,11 +115,15 @@ const QuizSelection = () => {
             >
               <div className="image-wrap">
                 <img
-                  src={plantImages[quiz.plantName] || '/src/assets/default-plant.jpg'}
+                  src={plantImages[quiz.plantName] || quiz.dbImage || '/src/assets/default-plant.jpg'}
                   alt={quiz.plantName}
                   className="quiz-image"
                   onError={(e) => {
-                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIxNTAiIGZpbGw9IiNlYWVhZWEiLz48cGF0aCBkPSJNMTAwIDMwTDEyNSA4MEg3NUwxMDAgMzBaIiBmaWxsPSIjYWRjZGFkIi8+PHRleHQgeD0iMTAwIiB5PSIxMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM5OTkiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5JbWFnZSBOb3QgRm91bmQ8L3RleHQ+PC9zdmc+';
+                    if (quiz.dbImage && e.target.src !== quiz.dbImage) {
+                      e.target.src = quiz.dbImage;
+                    } else {
+                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIxNTAiIGZpbGw9IiNlYWVhZWEiLz48cGF0aCBkPSJNMTAwIDMwTDEyNSA4MEg3NUwxMDAgMzBaIiBmaWxsPSIjYWRjZGFkIi8+PHRleHQgeD0iMTAwIiB5PSIxMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM5OTkiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5JbWFnZSBOb3QgRm91bmQ8L3RleHQ+PC9zdmc+';
+                    }
                   }}
                 />
               </div>

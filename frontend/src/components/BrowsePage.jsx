@@ -21,9 +21,33 @@ const BrowsePage = ({ plantModels }) => {
       try {
         setLoading(true);
         const response = await axios.get('/api/plants');
-        if (response.data) {
-          setPlants(response.data);
-        }
+        const payload = response.data;
+        const allPlants = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.data)
+            ? payload.data
+            : [];
+
+        // Fetch images for each plant
+        const plantsWithImages = await Promise.all(
+          allPlants.map(async (plant) => {
+            try {
+              const name = plant.plantName || plant.name;
+              if (name) {
+                const imgRes = await axios.get(`/api/images/${name}`);
+                const images = imgRes.data?.data || [];
+                if (images.length > 0) {
+                  return { ...plant, displayImage: images[0].src };
+                }
+              }
+            } catch (err) {
+              console.error(`Failed to fetch image for ${plant.plantName || plant.name}`, err);
+            }
+            return plant;
+          })
+        );
+
+        setPlants(plantsWithImages);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching plants:', err);
@@ -42,12 +66,35 @@ const BrowsePage = ({ plantModels }) => {
       setShowSearchResults(false);
       return;
     }
-    
+
     try {
       // First try to search from backend
       const response = await axios.get(`/api/plants/search?name=${searchTerm}`);
-      if (response.data && response.data.length > 0) {
-        setSearchResults(response.data);
+      const apiResults = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
+
+      if (apiResults.length > 0) {
+        const apiResultsWithImages = await Promise.all(
+          apiResults.map(async (plant) => {
+            try {
+              const name = plant.plantName || plant.name;
+              if (name) {
+                const imgRes = await axios.get(`/api/images/${name}`);
+                const images = imgRes.data?.data || [];
+                if (images.length > 0) {
+                  return { ...plant, displayImage: images[0].src };
+                }
+              }
+            } catch (err) {
+              console.error(`Failed to fetch image for ${plant.plantName || plant.name}`, err);
+            }
+            return plant;
+          })
+        );
+        setSearchResults(apiResultsWithImages);
         setShowSearchResults(true);
         return;
       }
@@ -55,15 +102,21 @@ const BrowsePage = ({ plantModels }) => {
       console.error('Error searching plants from API:', err);
       // Fallback to local search if API fails
     }
-    
+
     // Fallback to local search
     const lowerCaseSearch = searchTerm.toLowerCase().trim();
-    const results = Object.keys(plantModels).filter(key => 
-      key.includes(lowerCaseSearch) || 
+    const apiLocalResults = plants.filter((plant) => {
+      const name = (plant.plantName || plant.name || '').toLowerCase();
+      const sci = (plant.scientificName || '').toLowerCase();
+      return name.includes(lowerCaseSearch) || sci.includes(lowerCaseSearch);
+    });
+
+    const staticResults = Object.keys(plantModels).filter(key =>
+      key.includes(lowerCaseSearch) ||
       plantModels[key].name.toLowerCase().includes(lowerCaseSearch)
     );
-    
-    setSearchResults(results);
+
+    setSearchResults([...apiLocalResults, ...staticResults]);
     setShowSearchResults(true);
   };
 
@@ -72,9 +125,10 @@ const BrowsePage = ({ plantModels }) => {
     if (typeof plant === 'string' && plantModels[plant]) {
       // Handle case when plant is a key from plantModels
       navigate(`/model/${plant}`);
-    } else if (plant._id) {
+    } else if (plant && (plant._id || plant.plantName || plant.name)) {
       // Handle case when plant is an object from API
-      navigate(`/model/${plant.name.toLowerCase()}`);
+      const plantName = plant.plantName || plant.name;
+      navigate(`/model/${encodeURIComponent(plantName)}`);
     }
   };
 
@@ -95,28 +149,28 @@ const BrowsePage = ({ plantModels }) => {
   return (
     <div style={{ backgroundColor: 'white', minHeight: '100vh' }}>
       <Navigation />
-      
+
       {/* Search Bar */}
-      <div style={{ 
-        padding: '30px 20px', 
+      <div style={{
+        padding: '30px 20px',
         backgroundColor: 'white',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <h1 style={{ 
-          color: '#28a745', 
+        <h1 style={{
+          color: '#28a745',
           marginBottom: '20px',
           textAlign: 'center'
         }}>
           Browse Plants
         </h1>
-        <div 
+        <div
           ref={searchInputRef}
-          style={{ 
-            display: 'flex', 
-            maxWidth: '600px', 
+          style={{
+            display: 'flex',
+            maxWidth: '600px',
             width: '100%',
             position: 'relative'
           }}
@@ -151,7 +205,7 @@ const BrowsePage = ({ plantModels }) => {
           >
             Search
           </button>
-          
+
           {/* Search Results Dropdown */}
           {showSearchResults && searchResults.length > 0 && (
             <div style={{
@@ -169,13 +223,13 @@ const BrowsePage = ({ plantModels }) => {
                 // Check if result is a string (key from plantModels) or an object (from API)
                 const isApiResult = typeof result !== 'string';
                 const key = isApiResult ? result._id : result;
-                const name = isApiResult ? result.name : plantModels[result].name;
-                const image = isApiResult ? 
-                  (result.images && result.images.length > 0 ? result.images[0] : '/placeholder.jpg') : 
+                const name = isApiResult ? (result.plantName || result.name) : plantModels[result].name;
+                const image = isApiResult ?
+                  (result.displayImage || result.image || (result.images && result.images.length > 0 ? result.images[0] : '/placeholder.jpg')) :
                   plantModels[result].image;
-                
+
                 return (
-                  <div 
+                  <div
                     key={key}
                     onClick={() => handleSelectPlant(result)}
                     style={{
@@ -187,8 +241,8 @@ const BrowsePage = ({ plantModels }) => {
                       gap: '10px'
                     }}
                   >
-                    <img 
-                      src={image} 
+                    <img
+                      src={image}
                       alt={name}
                       style={{
                         width: '40px',
@@ -208,7 +262,7 @@ const BrowsePage = ({ plantModels }) => {
 
       {/* Display all plants if no search is active */}
       {(!showSearchResults || searchResults.length === 0) && (
-        <div className="plants-grid" style={{ 
+        <div className="plants-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
           gap: '20px',
@@ -225,10 +279,10 @@ const BrowsePage = ({ plantModels }) => {
               <p>{error}</p>
               <p>Showing default plants instead</p>
               {Object.keys(plantModels).map((model) => (
-                <div 
-                  key={model} 
-                  className="plant-card" 
-                  style={{ 
+                <div
+                  key={model}
+                  className="plant-card"
+                  style={{
                     backgroundColor: '#f8f9fa',
                     padding: '15px',
                     borderRadius: '8px',
@@ -242,14 +296,14 @@ const BrowsePage = ({ plantModels }) => {
                   <img
                     src={plantModels[model].image}
                     alt={plantModels[model].name}
-                    style={{ 
+                    style={{
                       width: '100%',
                       height: '180px',
                       borderRadius: '8px',
                       objectFit: 'cover'
                     }}
                   />
-                  <p style={{ 
+                  <p style={{
                     color: '#28a745',
                     marginTop: '10px',
                     fontSize: '1.1rem',
@@ -257,22 +311,17 @@ const BrowsePage = ({ plantModels }) => {
                   }}>
                     {plantModels[model].name}
                   </p>
-                  <Link to={`/quiz/${plantModels[model].name}`} style={{ textDecoration: 'none', marginTop: '10px' }}>
-                    <button style={{ width: '100%', padding: '8px', backgroundColor: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: '5px', cursor: 'pointer', color: '#2e7d32', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                      <FaQuestionCircle />
-                      Take Quiz
-                    </button>
-                  </Link>
+
                 </div>
               ))}
             </div>
           ) : plants.length > 0 ? (
             // Display plants from API
             plants.map((plant) => (
-              <div 
-                key={plant._id} 
-                className="plant-card" 
-                style={{ 
+              <div
+                key={plant._id}
+                className="plant-card"
+                style={{
                   backgroundColor: '#f8f9fa',
                   padding: '15px',
                   borderRadius: '8px',
@@ -280,41 +329,36 @@ const BrowsePage = ({ plantModels }) => {
                   transition: 'transform 0.3s ease',
                   cursor: 'pointer'
                 }}
-                onClick={() => navigate(`/model/${plant.name.toLowerCase()}`)}
+                onClick={() => navigate(`/model/${encodeURIComponent(plant.plantName || plant.name)}`)}
               >
                 <img
-                  src={plant.images && plant.images.length > 0 ? plant.images[0] : '/placeholder.jpg'}
-                  alt={plant.name}
-                  style={{ 
+                  src={plant.displayImage || plant.image || (plant.images && plant.images.length > 0 ? plant.images[0] : '/placeholder.jpg')}
+                  alt={plant.plantName || plant.name}
+                  style={{
                     width: '100%',
                     height: '180px',
                     borderRadius: '8px',
                     objectFit: 'cover'
                   }}
                 />
-                <p style={{ 
+                <p style={{
                   color: '#28a745',
                   marginTop: '10px',
                   fontSize: '1.1rem',
                   textAlign: 'center'
                 }}>
-                  {plant.name}
+                  {plant.plantName || plant.name}
                 </p>
-                <Link to={`/quiz/${plant.name}`} style={{ textDecoration: 'none', marginTop: '10px' }}>
-                  <button style={{ width: '100%', padding: '8px', backgroundColor: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: '5px', cursor: 'pointer', color: '#2e7d32', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                    <FaQuestionCircle />
-                    Take Quiz
-                  </button>
-                </Link>
+
               </div>
             ))
           ) : (
             // Fallback to plantModels if no plants from API
             Object.keys(plantModels).map((model) => (
-              <div 
-                key={model} 
-                className="plant-card" 
-                style={{ 
+              <div
+                key={model}
+                className="plant-card"
+                style={{
                   backgroundColor: '#f8f9fa',
                   padding: '15px',
                   borderRadius: '8px',
@@ -327,14 +371,14 @@ const BrowsePage = ({ plantModels }) => {
                 <img
                   src={plantModels[model].image}
                   alt={plantModels[model].name}
-                  style={{ 
+                  style={{
                     width: '100%',
                     height: '180px',
                     borderRadius: '8px',
                     objectFit: 'cover'
                   }}
                 />
-                <p style={{ 
+                <p style={{
                   color: '#28a745',
                   marginTop: '10px',
                   fontSize: '1.1rem',

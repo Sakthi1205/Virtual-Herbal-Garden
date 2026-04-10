@@ -17,4 +17,4 @@ router.get('/:name', getPlantByName);
 // Create new plant
 router.post('/', createPlant);
 
-export default router;
+export default router;  
