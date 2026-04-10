@@ -10,7 +10,8 @@ config.*.env
 credentials.json
 backend/config.env
 frontend/.env
-
+backend/config.env
+backend/key.txt
 
 
 
