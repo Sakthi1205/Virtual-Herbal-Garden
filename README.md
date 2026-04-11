@@ -63,7 +63,7 @@ This project provides a digital solution for medicinal plant education by:
 
 ## 📄 Project Report
 
-📥 [Report](./Viva Report.pdf)
+📥 [Report](./Viva_Report.pdf)
 
 ---
 
