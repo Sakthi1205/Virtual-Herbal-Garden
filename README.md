@@ -48,22 +48,13 @@ This project provides a digital solution for medicinal plant education by:
 - 🔎 Improving search and accessibility  
 - 🌍 Supporting scalable web-based learning  
 
----
-
-## 📸 Application Screenshots
-
-> *(Add your screenshots here)*
-
-- Home Page  
-- Plant Details Page  
-- 3D Visualization  
-- Search & Filter  
+ 
 
 ---
 
 ## 📄 Project Report
 
-📥[Download Report](./Viva%20Report.pdf)
+-📥[Download Report](./Viva%20Report.pdf)
 ---
 
 
